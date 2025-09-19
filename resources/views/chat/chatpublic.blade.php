@@ -65,6 +65,9 @@
             height: 30px;  
             border-radius: 50%; 
        }
+       .myMessage{
+         background: rgb(39, 161, 141)
+       }
    </style>
 @endsection
 @section('content')
@@ -75,7 +78,7 @@
             <div class="row">
                 <div class="col-md-12 items">
                     @foreach ($users as $item)
-                        <a href="" class="item">
+                        <a href="{{$item->id}}" id="link_{{$item->id}}" class="item">
                             {{-- <div class="status"></div> --}}
                             <img src="{{$item->image}}" alt="">
                             <p>{{$item->name}}</p>
@@ -91,10 +94,10 @@
             <ul class="block-chat">
                 
             </ul>
-            <form action="">
+            <form>
                 <div class="d-flex box-chat" >
-                    <input type="text" class="form-control me-3" id="">
-                    <button class="btn btn-success">Gửi</button>
+                    <input type="text" class="form-control me-3" id="inpChat">
+                    <button type="button" class="btn btn-success" id="btnSend">Gửi</button>
                 </div>
             </form>
        </div>
@@ -105,15 +108,59 @@
     <script type="module">
 
         Echo.join('chat')
-            .here(users=>{
-                console.log(users,"những ai đăng nhập");
+            .here(users=>{ 
+                users.forEach(      
+                item => {
+                    console.log(item.id);
+                    if(item.id === {{auth()->id()}}){
+                        return 
+                    }
+                    let el = document.querySelector(`#link_${item.id}`)
+                    console.log(el);
+                    console.log(`#link_${item.id}`);
+                    
+                    let elementStatus = document.createElement('div')
+                    elementStatus.classList.add('status')
+                    el.appendChild(elementStatus)
+                });
                 
             }).joining(user=>{
-                console.log(user,"Ai vào kênh chat")
-
-            }).leaving(user=>{
-                console.log(user,"Ai roi link chat");
                 
+                let el = document.querySelector(`#link_${user.id}`)
+                    // console.log(el);
+                    // console.log(`#link_${item.id}`);
+                    
+                    let elementStatus = document.createElement('div')
+                    elementStatus.classList.add('status')
+                    el.appendChild(elementStatus)
+            }).leaving(user=>{
+                let el = document.querySelector(`#link_${user.id}`)
+                let elmStatus = el.querySelector('.status')
+                el.removeChild(elmStatus)
+                
+            }).listen('UserOnlined',envent=>{
+                console.log(envent);
+                let blockChat = document.querySelector(".block-chat");
+                let elementChat = document.createElement("li");
+                elementChat.textContent = `${envent.message}`
+                if(envent.user.id == "{{Auth::user()->id}}"){
+                    elementChat.classList.add('myMessage')
+                }
+                blockChat.appendChild(elementChat);
+            })
+
+
+            // Sử lý chat
+            let inpChat = document.querySelector('#inpChat');
+            let btnSend = document.querySelector('#btnSend')
+            
+            btnSend.addEventListener('click',function(){
+                axios.post('{{route("sendMessage")}}',{
+                    'message':inpChat.value
+                }).then(data=>{
+                    // console.log(data.data.cuccess);
+                    
+                })
             })
     </script>
         

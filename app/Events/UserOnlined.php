@@ -18,9 +18,11 @@ class UserOnlined implements ShouldBroadcast
      * Create a new event instance.
      */
     public $user;
-    public function __construct(User $user)
+    public $message;
+    public function __construct(User $user, $message)
     {
         $this->user = $user;
+        $this->message = $message;
     }
 
     /**
